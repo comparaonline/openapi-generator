@@ -32,34 +32,39 @@ describe('functions', () => {
   })
 
   it('runSwagger with test endpoint', async () => {
+    // Arrange
     const { router, app } = init()
     const testRouter = Router()
     testRouter.get('/', (_req, res) => {
       res.status(200).send('OK')
     })
     router.use('/test', testRouter)
-
     app.use('', router)
+    // Act
     runSwagger(app, router, swaggerConfig)
     const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
     const swaggerJSON = response.body
+    // Assert
     expect(swaggerJSON?.paths?.['/test/']?.get).not.toBeUndefined()
   })
   it('runSwagger with test endpoint without basePath', async () => {
+    // Arrange
     const { router, app } = init()
     const testRouter = Router()
     testRouter.get('/', (_req, res) => {
       res.status(200).send('OK')
     })
     router.use('/test', testRouter)
-
     app.use('', router)
+    // Act
     runSwagger(app, router, { ...swaggerConfig, swaggerDoc: { ...swaggerConfig.swaggerDoc, basePath: undefined } })
     const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
     const swaggerJSON = response.body
+    // Assert
     expect(swaggerJSON?.paths?.['/test/']?.get).not.toBeUndefined()
   })
   it('runSwagger with test endpoint joi params', async () => {
+    // Arrange
     const { router, app } = init()
     const testRouter = Router()
     const joiSchema = joi.object().required().keys({
@@ -67,20 +72,23 @@ describe('functions', () => {
         name: joi.string()
       }
     })
-    testRouter.get('/:name', createHandler(joiSchema), (_req, res) => {
+    const handler = createHandler(joiSchema)
+    testRouter.get('/:name', handler, (_req, res) => {
       res.status(200).send('OK')
     })
     router.use('/test', testRouter)
-
     app.use('', router)
+    // Act
     runSwagger(app, router, swaggerConfig)
     const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
     const swaggerJSON = response.body
     const swaggerPath = swaggerJSON?.paths?.['/test/{name}']?.get
+    // Assert
     expect(swaggerPath).not.toBeUndefined()
     expect(swaggerPath.parameters.find((param: { in: string, name: string }) => param.name === 'name')?.in).toEqual('path')
   })
   it('runSwagger with test endpoint joi required params', async () => {
+    // Arrange
     const { router, app } = init()
     const testRouter = Router()
     const joiSchema = joi.object().required().keys({
@@ -88,20 +96,23 @@ describe('functions', () => {
         name: joi.string().required()
       }
     })
-    testRouter.get('/:name', createHandler(joiSchema), (_req, res) => {
+    const handler = createHandler(joiSchema)
+    testRouter.get('/:name', handler, (_req, res) => {
       res.status(200).send('OK')
     })
     router.use('/test', testRouter)
-
     app.use('', router)
+    // Act
     runSwagger(app, router, swaggerConfig)
     const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
     const swaggerJSON = response.body
     const swaggerPath = swaggerJSON?.paths?.['/test/{name}']?.get
+    // Assert
     expect(swaggerPath).not.toBeUndefined()
     expect(swaggerPath.parameters.find((param: { in: string, name: string }) => param.name === 'name')?.in).toEqual('path')
   })
   it('runSwagger with test endpoint joi body and params', async () => {
+    // Arrange
     const { router, app } = init()
     const testRouter = Router()
     const joiSchema = joi.object().required().keys({
@@ -112,21 +123,24 @@ describe('functions', () => {
         name: joi.string()
       }
     })
-    testRouter.post('/:name', createHandler(joiSchema), (_req, res) => {
+    const handler = createHandler(joiSchema)
+    testRouter.post('/:name', handler, (_req, res) => {
       res.status(200).send('OK')
     })
     router.use('/test', testRouter)
-
     app.use('', router)
+    // Act
     runSwagger(app, router, swaggerConfig)
     const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
     const swaggerJSON = response.body
     const swaggerPath = swaggerJSON?.paths?.['/test/{name}']?.post
+    // Assert
     expect(swaggerPath).not.toBeUndefined()
     expect(swaggerPath.requestBody?.content?.['application/json']?.schema?.properties?.name?.type).toEqual('string')
   })
 
   it('runSwagger with test endpoint joi body , params and example', async () => {
+    // Arrange
     const { router, app } = init()
     const testRouter = Router()
     const joiSchema = joi.object().required().keys({
@@ -144,21 +158,24 @@ describe('functions', () => {
         name: 'bodyName'
       }
     })
-    testRouter.post('/:name', createHandler(joiSchema), (_req, res) => {
+    const handler = createHandler(joiSchema)
+    testRouter.post('/:name', handler, (_req, res) => {
       res.status(200).send('OK')
     })
     router.use('/test', testRouter)
-
     app.use('', router)
+    // Act
     runSwagger(app, router, swaggerConfig)
     const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
     const swaggerJSON = response.body
     const swaggerPath = swaggerJSON?.paths?.['/test/{name}']?.post
+    // Assert
     expect(swaggerPath).not.toBeUndefined()
     expect(swaggerPath.requestBody?.content?.['application/json']?.schema?.properties?.name?.type).toEqual('string')
   })
 
   it('runSwagger with test endpoint joi body force oneOf line', async () => {
+    // Arrange
     const { router, app } = init()
     const testRouter = Router()
     const joiSchema = joi.object().required().keys({
@@ -174,21 +191,24 @@ describe('functions', () => {
         })
       }
     })
-    testRouter.post('/:name', createHandler(joiSchema), (_req, res) => {
+    const handler = createHandler(joiSchema)
+    testRouter.post('/:name', handler, (_req, res) => {
       res.status(200).send('OK')
     })
     router.use('/test', testRouter)
-
     app.use('', router)
+    // Act
     runSwagger(app, router, swaggerConfig)
     const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
     const swaggerJSON = response.body
     const swaggerPath = swaggerJSON?.paths?.['/test/{name}']?.post
+    // Assert
     expect(swaggerPath).not.toBeUndefined()
     expect(swaggerPath.requestBody?.content?.['application/json']?.schema?.properties?.name?.type).toEqual('string')
   })
 
   it('runSwagger with test endpoint and response', async () => {
+    // Arrange
     const { router, app } = init()
     const testRouter = Router()
     const joiSchema = joi.object().required().keys({
@@ -216,21 +236,24 @@ describe('functions', () => {
       description: undefined,
       operationId: undefined
     }
-    testRouter.post('/:name', createHandler(params), (_req, res) => {
+    const handler = createHandler(params)
+    testRouter.post('/:name', handler, (_req, res) => {
       res.status(200).send('OK')
     })
     router.use('/test', testRouter)
-
     app.use('', router)
+    // Act
     runSwagger(app, router, swaggerConfig)
     const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
     const swaggerJSON = response.body
     const swaggerPath = swaggerJSON?.paths?.['/test/{name}']?.post
+    // Assert
     expect(swaggerPath).not.toBeUndefined()
     expect(swaggerPath.requestBody?.content?.['application/json']?.schema?.properties?.name?.type).toEqual('string')
     expect(swaggerPath?.responses?.['200']?.content?.['application/json']?.schema?.$ref?.includes(params.responseType.type.name)).toBeTruthy()
   })
   it('runSwagger with test endpoint and array response', async () => {
+    // Arrange
     const { router, app } = init()
     const testRouter = Router()
     const joiSchema = joi.object().required().keys({
@@ -258,22 +281,25 @@ describe('functions', () => {
       description: undefined,
       operationId: undefined
     }
-    testRouter.post('/:name', createHandler(params), (_req, res) => {
+    const handler = createHandler(params)
+    testRouter.post('/:name', handler, (_req, res) => {
       res.status(200).send('OK')
     })
     router.use('/test', testRouter)
-
     app.use('', router)
+    // Act
     runSwagger(app, router, swaggerConfig)
     const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
     const swaggerJSON = response.body
     const swaggerPath = swaggerJSON?.paths?.['/test/{name}']?.post
+    // Assert
     expect(swaggerPath).not.toBeUndefined()
     expect(swaggerPath.requestBody?.content?.['application/json']?.schema?.properties?.name?.type).toEqual('string')
     expect(swaggerPath?.responses?.['200']?.content?.['application/json']?.schema?.type).toEqual('array')
     expect(swaggerPath?.responses?.['200']?.content?.['application/json']?.schema?.items?.$ref?.includes(params.responseType.type.name)).toBeTruthy()
   })
   it('runSwagger with test endpoint and response description', async () => {
+    // Arrange
     const { router, app } = init()
     const testRouter = Router()
     const joiSchema = joi.object().required().keys({
@@ -301,22 +327,25 @@ describe('functions', () => {
       description: undefined,
       operationId: undefined
     }
-    testRouter.post('/:name', createHandler(params), (_req, res) => {
+    const handler = createHandler(params)
+    testRouter.post('/:name', handler, (_req, res) => {
       res.status(200).send('OK')
     })
     router.use('/test', testRouter)
-
     app.use('', router)
+    // Act
     runSwagger(app, router, swaggerConfig)
     const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
     const swaggerJSON = response.body
     const swaggerPath = swaggerJSON?.paths?.['/test/{name}']?.post
+    // Assert
     expect(swaggerPath).not.toBeUndefined()
     expect(swaggerPath.requestBody?.content?.['application/json']?.schema?.properties?.name?.type).toEqual('string')
     expect(swaggerPath?.responses?.['200']?.content?.['application/json']?.schema?.$ref?.includes(params.responseType.type.name)).toBeTruthy()
     expect(swaggerPath?.responses?.['200']?.description).toEqual(params.responseType.description)
   })
   it('runSwagger with test endpoint , response description and operationId', async () => {
+    // Arrange
     const { router, app } = init()
     const testRouter = Router()
     const joiSchema = joi.object().required().keys({
@@ -344,30 +373,35 @@ describe('functions', () => {
       description: 'Description',
       operationId: 'testingID'
     }
-    testRouter.post('/:name', createHandler(params), (_req, res) => {
+    const handler = createHandler(params)
+    testRouter.post('/:name', handler, (_req, res) => {
       res.status(200).send('OK')
     })
     router.use('/test', testRouter)
-
     app.use('', router)
+    // Act
     runSwagger(app, router, swaggerConfig)
     const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
     const swaggerJSON = response.body
     const swaggerPath = swaggerJSON?.paths?.['/test/{name}']?.post
+    // Assert
     expect(swaggerPath).not.toBeUndefined()
     expect(swaggerPath.operationId).toEqual(params.operationId)
     expect(swaggerPath.description).toEqual(params.description)
   })
 
   it('runSwagger error folder', async () => {
+    // Arrange
     const { router, app } = init()
     const testRouter = Router()
     testRouter.post('/:name', (_req, res) => {
       res.status(200).send('OK')
     })
     router.use('/test', testRouter)
-
     app.use('', router)
-    expect(runSwagger(app, router, { ...swaggerConfig, jsonPath: 'notExist/swagger.json' }).status).toEqual('ERROR')
+    // Act
+    const run = runSwagger(app, router, { ...swaggerConfig, jsonPath: 'notExist/swagger.json' })
+    // Assert
+    expect(run.status).toEqual('ERROR')
   })
 })
