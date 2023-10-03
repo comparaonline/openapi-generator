@@ -4,7 +4,7 @@
     "description": "Soap and rest connector",
     "main": "build/index.js",
     "types": "build/index.d.ts",
-    "repository": "https://github.com/comparaonline/mono-client.git",
+    "repository": "https://github.com/comparaonline/openapi-generator.git",
     "engines": {
         "node": ">=16.20.0"
     },
