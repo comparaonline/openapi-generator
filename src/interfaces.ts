@@ -29,6 +29,7 @@ interface SwaggerConfig {
   folders: string[]
   jsonPath: string
   endpoint: string
+  active: boolean
 }
 
 interface ResponseType {

@@ -2,9 +2,7 @@ import { NextFunction, Request, RequestHandler } from 'express'
 import { ObjectSchema, isSchema } from 'joi'
 import { ResponseType } from './interfaces'
 import { StatusCodes } from 'http-status-codes'
-
-const isActive = true
-
+import internalConfig from './internal-config'
 class ExceptionError extends Error {
   constructor (public statusCode: number, message: string, public code: string) {
     super(message)
@@ -41,7 +39,7 @@ function joiMiddleware (joi: ObjectSchema | undefined): RequestHandlerWithDocume
       return next(e)
     }
   }) as unknown as RequestHandlerWithDocumentation
-  if (isActive) {
+  if (internalConfig.active) {
     middleware.joi = joi
   }
   return middleware
@@ -51,7 +49,7 @@ function createHandler (param1: Params): RequestHandler
 function createHandler (param1: ObjectSchema | undefined, responseType?: ResponseType): RequestHandler
 function createHandler (param1?: ObjectSchema | Params | undefined, paramResponseType?: ResponseType): RequestHandlerWithDocumentation {
   const middleware = joiMiddleware(isSchema(param1) ? param1 : param1?.schema)
-  if (isActive) {
+  if (internalConfig.active) {
     const defaultContentType = 'application/json'
     const contentType: string = ((param1 != null && 'contentType' in param1 && param1.contentType != null) ? param1.contentType : defaultContentType)
     const responseType: ResponseType = paramResponseType != null ? paramResponseType : (param1 as Params)?.responseType

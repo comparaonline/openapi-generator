@@ -9,6 +9,7 @@ import { existsSync, writeFileSync, readFileSync } from 'fs'
 import { serve, setup } from 'swagger-ui-express'
 import { ResponseType, SwaggerConfig, SwaggerDoc } from './interfaces'
 import { RequestHandlerWithDocumentation } from './create-handler'
+import internalConfig from './internal-config'
 
 function removeNullProperties (properties: any): void {
   for (const key in properties) {
@@ -201,21 +202,24 @@ export function runSwagger (
   swaggerConfig: SwaggerConfig
 ): void {
   try {
-    if (!existsSync(swaggerConfig.jsonPath.toString())) {
-      writeFileSync(
-        swaggerConfig.jsonPath.toString(),
-        JSON.stringify(listEndpoints(app, swaggerConfig)),
-        { encoding: 'utf-8' }
+    if (swaggerConfig.active) {
+      internalConfig.active = true
+      if (!existsSync(swaggerConfig.jsonPath.toString())) {
+        writeFileSync(
+          swaggerConfig.jsonPath.toString(),
+          JSON.stringify(listEndpoints(app, swaggerConfig)),
+          { encoding: 'utf-8' }
+        )
+      }
+      const swaggerDocument = JSON.parse(
+        readFileSync(swaggerConfig.jsonPath.toString(), { encoding: 'utf-8' })
       )
+      router.use(swaggerConfig.endpoint, serve)
+      router.get(swaggerConfig.endpoint, setup(swaggerDocument))
+      router.get(`${swaggerConfig.endpoint}.json`, (_req, res) => {
+        res.status(200).send(swaggerDocument)
+      })
     }
-    const swaggerDocument = JSON.parse(
-      readFileSync(swaggerConfig.jsonPath.toString(), { encoding: 'utf-8' })
-    )
-    router.use(swaggerConfig.endpoint, serve)
-    router.get(swaggerConfig.endpoint, setup(swaggerDocument))
-    router.get(`${swaggerConfig.endpoint}.json`, (_req, res) => {
-      res.status(200).send(swaggerDocument)
-    })
   } catch (error) {
     console.log(error)
   }
