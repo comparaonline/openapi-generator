@@ -207,13 +207,10 @@ export function runSwagger (
         JSON.stringify(listEndpoints(app, swaggerConfig)),
         { encoding: 'utf-8' }
       )
-      console.log('swagger.json has been created')
     }
-
     const swaggerDocument = JSON.parse(
       readFileSync(swaggerConfig.jsonPath.toString(), { encoding: 'utf-8' })
     )
-
     router.use(swaggerConfig.endpoint, serve)
     router.get(swaggerConfig.endpoint, setup(swaggerDocument))
     router.get(`${swaggerConfig.endpoint}.json`, (_req, res) => {
