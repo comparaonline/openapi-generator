@@ -4,3 +4,4 @@ build
 coverage
 src/tester.ts
 .vscode
+src/__tests__/testing-mocks/swagger.json

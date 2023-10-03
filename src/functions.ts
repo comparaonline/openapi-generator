@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-useless-escape */
+/* eslint-disable @typescript-eslint/prefer-optional-chain */
+
 import { Application, Router } from 'express'
 import j2s from 'joi-to-swagger'
 import { createGenerator } from 'ts-json-schema-generator'
@@ -18,13 +20,15 @@ function removeNullProperties (properties: any): void {
     if (property.anyOf != null) {
       property.anyOf = property.anyOf.filter((p: any) => p.type !== 'null')
     }
-    if (Array.isArray(property?.type)) {
-      property.type = property.type.filter((p: string) => p !== 'null')
-      if (property.type.length === 1) {
-        property.type = property.type[0]
-      } else {
-        property.oneOf = property.type.map((p: string) => ({ type: p }))
-        delete property.type
+    if (property.type != null) {
+      if (Array.isArray(property.type)) {
+        property.type = property.type.filter((p: string) => p !== 'null')
+        if (property.type.length === 1) {
+          property.type = property.type[0]
+        } else {
+          property.oneOf = property.type.map((p: string) => ({ type: p }))
+          delete property.type
+        }
       }
     }
   }
@@ -46,7 +50,12 @@ function listEndpoints (app: Application, swaggerConfig: SwaggerConfig): Swagger
       discriminatorType: 'open-api'
     }).createSchema('*')
 
-    removeNullProperties(schema)
+    for (const key in schema.definitions) {
+      if (schema.definitions[key] != null) {
+        removeNullProperties((schema.definitions[key] as any).properties)
+      }
+    }
+
     swaggerSchema.components.schemas = {
       ...swaggerSchema.components.schemas,
       ...JSON.parse(
@@ -68,10 +77,13 @@ function listEndpoints (app: Application, swaggerConfig: SwaggerConfig): Swagger
 
         for (let j = 0; j < methods.length; j++) {
           const method = methods[j]
-          const controller: RequestHandlerWithDocumentation | undefined =
-            route.stack?.find(
-              (stack: any) => stack?.handle?.joi != null || stack?.handle?.responseType != null
+          let controller: RequestHandlerWithDocumentation | undefined
+          if (route.stack != null) {
+            controller =
+            route.stack.find(
+              (stack: any) => stack.handle.joi != null || stack.handle.responseType != null
             )?.handle
+          }
 
           let responseOptions: any = {
             [StatusCodes.OK]: {
@@ -110,27 +122,27 @@ function listEndpoints (app: Application, swaggerConfig: SwaggerConfig): Swagger
           }
 
           const options: { tags: string[], parameters?: any[], requestBody?: any } = {
-            tags: [basePath.slice(((swaggerSchema?.basePath)?.length ?? 0) + 1).slice(0, -1)]
+            tags: [basePath.slice(((swaggerSchema.basePath)?.length ?? 0) + 1).slice(0, -1)]
           }
 
           if (joi != null) {
             const { swagger } = j2s(joi)
 
-            if (swagger?.properties?.body != null) {
+            if (swagger.properties != null && swagger.properties.body != null) {
               options.requestBody = {
                 content: {
-                  [controller?.contentType ?? 'application/json']: {
+                  [(controller as RequestHandlerWithDocumentation).contentType as string]: {
                     schema: swagger.properties.body
                   }
                 }
               }
 
               if (swagger.example != null) {
-                options.requestBody.content[controller?.contentType ?? 'application/json'].examples = { custom: { value: swagger.example.body } }
+                options.requestBody.content[(controller as RequestHandlerWithDocumentation).contentType as string].examples = { custom: { value: swagger.example.body } }
               }
             }
 
-            if (swagger?.properties?.params != null) {
+            if (swagger.properties != null && swagger.properties.params != null) {
               const properties = JSON.parse(
                 JSON.stringify(swagger.properties.params)
               )
@@ -151,7 +163,7 @@ function listEndpoints (app: Application, swaggerConfig: SwaggerConfig): Swagger
               ? route.path.toString().slice(1).replace(/:([^/]+)/g, '{$1}')
               : ''
           const swaggerPath = `${basePath}${path}`.slice(
-            swaggerSchema?.basePath?.length ?? 0
+            swaggerSchema.basePath?.length ?? 0
           )
 
           if (swaggerSchema.paths[swaggerPath] == null) {
@@ -200,7 +212,7 @@ export function runSwagger (
   app: Application,
   router: Router,
   swaggerConfig: SwaggerConfig
-): void {
+): { status: 'OK' | 'ERROR', error?: any } {
   try {
     if (swaggerConfig.active) {
       internalConfig.active = true
@@ -220,7 +232,9 @@ export function runSwagger (
         res.status(200).send(swaggerDocument)
       })
     }
+    return { status: 'OK' }
   } catch (error) {
     console.log(error)
+    return { status: 'ERROR', error }
   }
 }

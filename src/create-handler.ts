@@ -24,9 +24,7 @@ function joiMiddleware (joi: ObjectSchema | undefined): RequestHandlerWithDocume
       if (joi == null) {
         return next()
       }
-      const { error, value = req } = joi != null
-        ? joi.validate(req)
-        : { error: null }
+      const { error, value } = joi.validate(req)
       if (error != null) {
         throw new ExceptionError(StatusCodes.BAD_REQUEST, error.message, 'bad-request')
       }
@@ -45,8 +43,8 @@ function joiMiddleware (joi: ObjectSchema | undefined): RequestHandlerWithDocume
   return middleware
 }
 
-function createHandler (param1: Params): RequestHandler
-function createHandler (param1: ObjectSchema | undefined, responseType?: ResponseType): RequestHandler
+function createHandler (param1: Params): RequestHandlerWithDocumentation
+function createHandler (param1: ObjectSchema | undefined, responseType?: ResponseType): RequestHandlerWithDocumentation
 function createHandler (param1?: ObjectSchema | Params | undefined, paramResponseType?: ResponseType): RequestHandlerWithDocumentation {
   const middleware = joiMiddleware(isSchema(param1) ? param1 : param1?.schema)
   if (internalConfig.active) {
