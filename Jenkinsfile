@@ -6,21 +6,21 @@ pipeline {
   stages {
     stage('Prepare') {
       steps {
-        nvm("v14.17.0") {
+        nvm("v16.20.0") {
           sh 'yarn install'
         }
       }
     }
     stage('Build') {
         steps {
-          nvm("v14.17.0") {
+          nvm("v16.20.0") {
             sh 'yarn build'
           }
         }
     }
     stage('Test') {
         steps {
-          nvm("v14.17.0") {
+          nvm("v16.20.0") {
             sh 'yarn test'
           }
         }
