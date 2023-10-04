@@ -2,15 +2,15 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 
 import joi from 'joi'
-import internalConfig from '../internal-config'
-import { RequestHandlerWithDocumentation, createHandler } from '..'
+import { OpenApiGenerator, RequestHandlerWithDocumentation } from '..'
+import { swaggerConfig } from './swaggerConfig'
 
 const joiSchema = joi.object().required().keys({
   body: joi.object().keys({
     name: joi.string()
   })
 })
-internalConfig.active = true
+const openApiGenerator = new OpenApiGenerator(swaggerConfig)
 describe('create-handler', () => {
   it('create handler function with minimal params', () => {
     // Arrange
@@ -22,7 +22,7 @@ describe('create-handler', () => {
       }
     }
     // Act
-    const handler: RequestHandlerWithDocumentation = createHandler(params)
+    const handler: RequestHandlerWithDocumentation = openApiGenerator.createHandler(params)
     // Assert
     expect(handler.joi).toEqual(joiSchema)
   })
@@ -39,7 +39,7 @@ describe('create-handler', () => {
       }
     }
     // Act
-    const handler = createHandler(params)
+    const handler = openApiGenerator.createHandler(params)
     // Assert
     expect(handler.joi).toEqual(params.schema)
     expect(handler.contentType).toEqual(params.contentType)
@@ -54,7 +54,7 @@ describe('create-handler', () => {
       type: {}
     }
     // Act
-    const handler = createHandler(
+    const handler = openApiGenerator.createHandler(
       joiSchema, params
     )
     // Assert
@@ -63,7 +63,7 @@ describe('create-handler', () => {
 
   it('create handler function with undefined joi', () => {
     // Act
-    const handler = createHandler(undefined)
+    const handler = openApiGenerator.createHandler(undefined)
     // Assert
     expect(handler.joi).toBeUndefined()
   })
@@ -71,7 +71,7 @@ describe('create-handler', () => {
     // Arrange
     const next = jest.fn()
     // Act
-    const handler = createHandler(undefined)
+    const handler = openApiGenerator.createHandler(undefined)
     handler({} as any, {} as any, next)
     // Assert
     expect(handler.joi).toBeUndefined()
@@ -83,7 +83,7 @@ describe('create-handler', () => {
     const next = jest.fn()
     const req = { body: { name: 1 } }
     // Act
-    const handler = createHandler(joiSchema)
+    const handler = openApiGenerator.createHandler(joiSchema)
     handler(req as any, {} as any, next)
     // Assert
     expect(handler).toBeInstanceOf(Function)
@@ -94,7 +94,7 @@ describe('create-handler', () => {
     const next = jest.fn()
     const req = { body: { name: 'name' } }
     // Act
-    const handler = createHandler(joiSchema)
+    const handler = openApiGenerator.createHandler(joiSchema)
     handler(req as any, {} as any, next)
     // Assert
     expect(handler).toBeInstanceOf(Function)
@@ -106,7 +106,7 @@ describe('create-handler', () => {
     const req = { body: { name: 'name' } }
     const next = jest.fn()
     // Act
-    const handler = createHandler(undefined)
+    const handler = openApiGenerator.createHandler(undefined)
     handler(req as any, {} as any, next)
     // Assert
     expect(handler).toBeInstanceOf(Function)
