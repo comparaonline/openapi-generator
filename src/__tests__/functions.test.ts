@@ -6,7 +6,8 @@ import { swaggerConfig } from './swaggerConfig'
 import joi from 'joi'
 import { unlinkSync } from 'fs'
 import { TestingEntity } from './testing-mocks/testing-entity'
-import { OpenApiGenerator } from '..'
+import { setupOpenApi } from '../index'
+import { OpenApiGenerator } from '../OpenApiGenerator'
 
 const init = (): { router: express.Router, app: express.Application } => {
   const router = Router()
@@ -18,7 +19,7 @@ describe('functions', () => {
   let openApiGenerator: OpenApiGenerator
   beforeEach(() => {
     try {
-      openApiGenerator = new OpenApiGenerator(Object.assign({}, swaggerConfig))
+      openApiGenerator = setupOpenApi(swaggerConfig)
       unlinkSync(swaggerConfig.jsonPath)
     } catch (error) {
       console.log(error)

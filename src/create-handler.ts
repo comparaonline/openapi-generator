@@ -2,7 +2,7 @@ import { NextFunction, Request, RequestHandler } from 'express'
 import { ObjectSchema, isSchema } from 'joi'
 import { ResponseType } from './interfaces'
 import { StatusCodes } from 'http-status-codes'
-import { OpenApiGenerator } from '.'
+import { OpenApiGenerator } from './OpenApiGenerator'
 class ExceptionError extends Error {
   constructor (public statusCode: number, message: string, public code: string) {
     super(message)

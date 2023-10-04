@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 
 import joi from 'joi'
-import { OpenApiGenerator, RequestHandlerWithDocumentation } from '..'
+import { RequestHandlerWithDocumentation, setupOpenApi } from '..'
 import { swaggerConfig } from './swaggerConfig'
 
 const joiSchema = joi.object().required().keys({
@@ -10,7 +10,7 @@ const joiSchema = joi.object().required().keys({
     name: joi.string()
   })
 })
-const openApiGenerator = new OpenApiGenerator(swaggerConfig)
+const openApiGenerator = setupOpenApi(swaggerConfig)
 describe('create-handler', () => {
   it('create handler function with minimal params', () => {
     // Arrange

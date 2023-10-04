@@ -11,7 +11,7 @@ import { existsSync, writeFileSync, readFileSync } from 'fs'
 import { serve, setup } from 'swagger-ui-express'
 import { ResponseType, SwaggerConfig, SwaggerDoc } from './interfaces'
 import { RequestHandlerWithDocumentation } from './create-handler'
-import { OpenApiGenerator } from '.'
+import { OpenApiGenerator } from './OpenApiGenerator'
 
 function removeNullProperties (properties: any): void {
   for (const key in properties) {
