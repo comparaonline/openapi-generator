@@ -51,7 +51,6 @@ describe('functions', () => {
   })
   it('runSwagger with test endpoint without basePath', async () => {
     // Arrange
-
     const path: any = undefined
     OpenApiGenerator.swaggerConfig.swaggerDoc.basePath = path
     const { router, app } = init()
