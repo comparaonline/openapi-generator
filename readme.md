@@ -177,7 +177,6 @@ productsRouter.get('/search/:id',createHandler(schema),(_req,res,_next)=>{
 ```
 
 The result is something like this
-//TODO
 
 - This is the "endpoint" indicated in the configuration
 /api/v1/open-api
