@@ -31,7 +31,7 @@ import { SwaggerConfig, setupOpenApi } from '@comparaonline/openapi-generator';
 const swaggerConfig: SwaggerConfig = {
   swaggerDoc: {
     openapi: '3.0.0',
-    basePath: '/v1/api',
+    basePath: '/api/v1',
     info: {
       title: 'My API',
       version: '1.0.0',
@@ -176,7 +176,17 @@ productsRouter.get('/search/:id',createHandler(schema),(_req,res,_next)=>{
 
 The result is something like this
 //TODO
-![Swagger closed](https://lh3.googleusercontent.com/drive-viewer/AK7aPaDXgU1oyxVdP1D85vylyprLUbqzpUsesQjhUqwxf7fvA5UifW-8qFElqlN-1JCSjnrHGh8zEt0auE5rubyp5Xr4MJ3_=s1600)
-![Query and Params and Header Image](https://lh3.googleusercontent.com/drive-viewer/AK7aPaC9PILp4VzgFsWFjnBHfty_mCEhpUXCo0jzxF9firP5BipTrqNkpYMAKxSmbgO93wgbhy6jtIQl8UGGC2NwPdcZHk56Rg=s1600)
 
+- This is the "endpoint" indicated in the configuration
+/api/v1/open-api
+![Swagger](https://lh3.googleusercontent.com/drive-viewer/AK7aPaC9PILp4VzgFsWFjnBHfty_mCEhpUXCo0jzxF9firP5BipTrqNkpYMAKxSmbgO93wgbhy6jtIQl8UGGC2NwPdcZHk56Rg=s1600)
+
+![Swagger opened](https://lh3.googleusercontent.com/drive-viewer/AK7aPaDXgU1oyxVdP1D85vylyprLUbqzpUsesQjhUqwxf7fvA5UifW-8qFElqlN-1JCSjnrHGh8zEt0auE5rubyp5Xr4MJ3_=s1600)
+
+- If we want to obtain the raw json to import it into "postman" for example, we simply need to add ".json" to the url
+/api/v1/open-api.json
+
+```json
+{"openapi":"3.0.0","info":{"title":"My API","version":"1.0.0","description":" ","contact":{"name":"Insurance Core Team","url":"https://comparaonline.com","email":"info@comparaonline.com"},"termsOfService":"https://comparaonline.com","license":{"name":"ComparaOnline","url":"https://comparaonline.com"}},"servers":[{"url":"http://localhost:3000/api/v1","description":"Development server"},{"url":"https://devserver.com/api/v1","description":"Staging server"},{"url":"https://productionserver.com/api/v1","description":"Production server"}],"paths":{"/":{"get":{"operationId":"/_get","description":"","responses":{"200":{"description":""}},"tags":[""]}},"/products/search/{id}":{"get":{"operationId":"/products/search/{id}_get","description":"","responses":{"200":{"description":""}},"tags":["products"],"parameters":[{"in":"header","name":"api-key","required":true,"schema":{"type":"string","format":"uuid"}},{"in":"query","name":"search","required":false,"schema":{"type":"string"}},{"in":"path","name":"id","required":false,"schema":{"type":"number","format":"float"}}]}}},"components":{"schemas":{"ExampleResponse":{"type":"object","properties":{"name":{"type":"string"}},"additionalProperties":false}}}}
+```
 ### Responses
