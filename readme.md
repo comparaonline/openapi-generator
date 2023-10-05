@@ -19,7 +19,7 @@ Install with npm
   npm install @comparaonline/openapi-generator
 ```
     
-## Configuration
+## Initialization
 
 #### Create a config file and exports {runSwagger,createHandler}
 
@@ -69,8 +69,7 @@ const swaggerConfig: SwaggerConfig = {
   endpoint: '/open-api',
   active: true
 }
-const {runSwagger,createHandler}=setupOpenApi(swaggerConfig)
-export {runSwagger,createHandler}
+setupOpenApi(swaggerConfig)
 ```
 
 #### Add runSwagger to app and main router in the main file
@@ -78,7 +77,7 @@ export {runSwagger,createHandler}
 ```javascript
 import express, { Router } from "express"
 import { productsRouter } from "./products.router"
-import { runSwagger } from "./openapi.config"
+import { runSwagger } from '@comparaonline/openapi-generator';
 const app=express()
 const router=Router()
 router.get('/',(_req,res)=>{
@@ -111,9 +110,9 @@ import { createHandler } from '@comparaonline/openapi-generator';
 import joi from 'joi'
 import { Router } from 'express';
 import { createHandler } from './openapi.config';
-const schema=joi.object().required().keys({
+const schema=joi.object().unknown().required().keys({
     params: {
-      id: joi.string()
+      id: joi.number()
     }
   })
 
@@ -127,8 +126,6 @@ productsRouter.get('/search/:id',createHandler(schema),(_req,res,_next)=>{
 export {productsRouter}
 ```
 
-In this case, by adding the parameters, we get something like this
-![Params Image]()
 
 The joi will not only validate that your parameters are correct but will also generate the documentation
 
@@ -138,12 +135,12 @@ To add query params you must follow the same logic as for path params in this wa
 
 ```javascript
 
-const schema=joi.object().required().keys({
+const schema=joi.object().unknown().required().keys({
     params: {
-      id: joi.string()
+      id: joi.number()
     },
     query:{
-      search:joi.number()
+      search:joi.string().required()
     }
   })
 
@@ -153,8 +150,33 @@ productsRouter.get('/search/:id',createHandler(schema),(_req,res,_next)=>{
 })
 ```
 
+### Headers 
+
+To add headers you must follow the same logic as for path and query params in this way, the following example contains path , query params and headers
+
+```javascript
+
+const schema = joi.object().unknown().required().keys({
+  params: {
+    id: joi.number()
+  },
+  query: {
+    search: joi.string()
+  },
+  headers: joi.object().unknown().keys({
+    "api-key": joi.string().uuid().required()
+  })
+})
+
+productsRouter.get('/search/:id',createHandler(schema),(_req,res,_next)=>{
+    //your code here
+    res.status(200).send('OK')
+})
+```
+
 The result is something like this
 //TODO
-![Query and Params Image]()
+![Swagger closed](https://lh3.googleusercontent.com/drive-viewer/AK7aPaDXgU1oyxVdP1D85vylyprLUbqzpUsesQjhUqwxf7fvA5UifW-8qFElqlN-1JCSjnrHGh8zEt0auE5rubyp5Xr4MJ3_=s1600)
+![Query and Params and Header Image](https://lh3.googleusercontent.com/drive-viewer/AK7aPaC9PILp4VzgFsWFjnBHfty_mCEhpUXCo0jzxF9firP5BipTrqNkpYMAKxSmbgO93wgbhy6jtIQl8UGGC2NwPdcZHk56Rg=s1600)
 
 ### Responses

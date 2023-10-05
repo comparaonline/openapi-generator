@@ -136,7 +136,6 @@ function listEndpoints (app: Application, swaggerConfig: SwaggerConfig): Swagger
                   }
                 }
               }
-
               if (swagger.example != null) {
                 options.requestBody.content[(controller as RequestHandlerWithDocumentation).contentType as string].examples = { custom: { value: swagger.example.body } }
               }
