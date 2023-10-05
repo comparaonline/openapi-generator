@@ -11,7 +11,7 @@ import { existsSync, writeFileSync, readFileSync } from 'fs'
 import { serve, setup } from 'swagger-ui-express'
 import { ResponseType, SwaggerConfig, SwaggerDoc } from './interfaces'
 import { RequestHandlerWithDocumentation } from './create-handler'
-import internalConfig from './internal-config'
+import { OpenApiGenerator } from './OpenApiGenerator'
 
 function removeNullProperties (properties: any): void {
   for (const key in properties) {
@@ -210,12 +210,11 @@ function listEndpoints (app: Application, swaggerConfig: SwaggerConfig): Swagger
 
 export function runSwagger (
   app: Application,
-  router: Router,
-  swaggerConfig: SwaggerConfig
+  router: Router
 ): { status: 'OK' | 'ERROR', error?: any } {
   try {
+    const swaggerConfig = OpenApiGenerator.swaggerConfig
     if (swaggerConfig.active) {
-      internalConfig.active = true
       if (!existsSync(swaggerConfig.jsonPath.toString())) {
         writeFileSync(
           swaggerConfig.jsonPath.toString(),
