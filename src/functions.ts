@@ -142,19 +142,27 @@ function listEndpoints (app: Application, swaggerConfig: SwaggerConfig): Swagger
               }
             }
 
-            if (swagger.properties != null && swagger.properties.params != null) {
-              const properties = JSON.parse(
-                JSON.stringify(swagger.properties.params)
-              )
+            if (swagger.properties != null) {
+              const allowedParameters = [{ name: 'params', in: 'path' }, { name: 'query', in: 'query' }, { name: 'headers', in: 'header' }]
+              if (options.parameters == null) {
+                options.parameters = []
+              }
+              for (const allowedParam of allowedParameters) {
+                if (swagger.properties[allowedParam.name] != null) {
+                  const properties = JSON.parse(
+                    JSON.stringify(swagger.properties[allowedParam.name])
+                  )
 
-              options.parameters = Object.keys(properties.properties).map(
-                (property) => ({
-                  in: 'path',
-                  name: property,
-                  required: properties.required?.includes(property) ?? false,
-                  schema: properties.properties[property]
-                })
-              )
+                  options.parameters = Object.keys(properties.properties).map(
+                    (property) => ({
+                      in: allowedParam.in,
+                      name: property,
+                      required: properties.required?.includes(property) ?? false,
+                      schema: properties.properties[property]
+                    })
+                  ).concat(options.parameters)
+                }
+              }
             }
           }
 
