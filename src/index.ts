@@ -2,10 +2,10 @@
 
 import { OpenApiGenerator } from './OpenApiGenerator'
 import { SwaggerConfig } from './interfaces'
-
+export { createHandler } from './create-handler'
+export { runSwagger } from './functions'
 export { SwaggerDoc, SwaggerConfig, ResponseType } from './interfaces'
 export { RequestHandlerWithDocumentation } from './create-handler'
 export function setupOpenApi (swaggerConfig: SwaggerConfig) {
-  const { createHandler, runSwagger } = new OpenApiGenerator(swaggerConfig)
-  return { createHandler, runSwagger }
+  OpenApiGenerator.swaggerConfig = swaggerConfig
 }
