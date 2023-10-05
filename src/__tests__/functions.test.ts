@@ -6,8 +6,8 @@ import { swaggerConfig } from './swaggerConfig'
 import joi from 'joi'
 import { unlinkSync } from 'fs'
 import { TestingEntity } from './testing-mocks/testing-entity'
-import { setupOpenApi } from '../index'
 import { OpenApiGenerator } from '../OpenApiGenerator'
+import { createHandler, runSwagger, setupOpenApi } from '..'
 
 const init = (): { router: express.Router, app: express.Application } => {
   const router = Router()
@@ -16,10 +16,9 @@ const init = (): { router: express.Router, app: express.Application } => {
 }
 
 describe('functions', () => {
-  let openApiGenerator: OpenApiGenerator
   beforeEach(() => {
     try {
-      openApiGenerator = setupOpenApi(swaggerConfig)
+      setupOpenApi(swaggerConfig)
       unlinkSync(swaggerConfig.jsonPath)
     } catch (error) {
       console.log(error)
@@ -44,7 +43,7 @@ describe('functions', () => {
     router.use('/test', testRouter)
     app.use('', router)
     // Act
-    openApiGenerator.runSwagger(app, router)
+    runSwagger(app, router)
     const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
     const swaggerJSON = response.body
     // Assert
@@ -62,7 +61,7 @@ describe('functions', () => {
     router.use('/test', testRouter)
     app.use('', router)
     // Act
-    openApiGenerator.runSwagger(app, router)
+    runSwagger(app, router)
     const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
     const swaggerJSON = response.body
     // Assert
@@ -81,7 +80,7 @@ describe('functions', () => {
     router.use('/test', testRouter)
     app.use('', router)
     // Act
-    openApiGenerator.runSwagger(app, router)
+    runSwagger(app, router)
     const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
     const swaggerJSON = response.body
     // Assert
@@ -96,14 +95,14 @@ describe('functions', () => {
         name: joi.string()
       }
     })
-    const handler = openApiGenerator.createHandler(joiSchema)
+    const handler = createHandler(joiSchema)
     testRouter.get('/:name', handler, (_req, res) => {
       res.status(200).send('OK')
     })
     router.use('/test', testRouter)
     app.use('', router)
     // Act
-    openApiGenerator.runSwagger(app, router)
+    runSwagger(app, router)
     const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
     const swaggerJSON = response.body
     const swaggerPath = swaggerJSON?.paths?.['/test/{name}']?.get
@@ -120,14 +119,14 @@ describe('functions', () => {
         name: joi.string().required()
       }
     })
-    const handler = openApiGenerator.createHandler(joiSchema)
+    const handler = createHandler(joiSchema)
     testRouter.get('/:name', handler, (_req, res) => {
       res.status(200).send('OK')
     })
     router.use('/test', testRouter)
     app.use('', router)
     // Act
-    openApiGenerator.runSwagger(app, router)
+    runSwagger(app, router)
     const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
     const swaggerJSON = response.body
     const swaggerPath = swaggerJSON?.paths?.['/test/{name}']?.get
@@ -147,14 +146,14 @@ describe('functions', () => {
         name: joi.string()
       }
     })
-    const handler = openApiGenerator.createHandler(joiSchema)
+    const handler = createHandler(joiSchema)
     testRouter.post('/:name', handler, (_req, res) => {
       res.status(200).send('OK')
     })
     router.use('/test', testRouter)
     app.use('', router)
     // Act
-    openApiGenerator.runSwagger(app, router)
+    runSwagger(app, router)
     const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
     const swaggerJSON = response.body
     const swaggerPath = swaggerJSON?.paths?.['/test/{name}']?.post
@@ -182,14 +181,14 @@ describe('functions', () => {
         name: 'bodyName'
       }
     })
-    const handler = openApiGenerator.createHandler(joiSchema)
+    const handler = createHandler(joiSchema)
     testRouter.post('/:name', handler, (_req, res) => {
       res.status(200).send('OK')
     })
     router.use('/test', testRouter)
     app.use('', router)
     // Act
-    openApiGenerator.runSwagger(app, router)
+    runSwagger(app, router)
     const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
     const swaggerJSON = response.body
     const swaggerPath = swaggerJSON?.paths?.['/test/{name}']?.post
@@ -215,14 +214,14 @@ describe('functions', () => {
         })
       }
     })
-    const handler = openApiGenerator.createHandler(joiSchema)
+    const handler = createHandler(joiSchema)
     testRouter.post('/:name', handler, (_req, res) => {
       res.status(200).send('OK')
     })
     router.use('/test', testRouter)
     app.use('', router)
     // Act
-    openApiGenerator.runSwagger(app, router)
+    runSwagger(app, router)
     const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
     const swaggerJSON = response.body
     const swaggerPath = swaggerJSON?.paths?.['/test/{name}']?.post
@@ -260,14 +259,14 @@ describe('functions', () => {
       description: undefined,
       operationId: undefined
     }
-    const handler = openApiGenerator.createHandler(params)
+    const handler = createHandler(params)
     testRouter.post('/:name', handler, (_req, res) => {
       res.status(200).send('OK')
     })
     router.use('/test', testRouter)
     app.use('', router)
     // Act
-    openApiGenerator.runSwagger(app, router)
+    runSwagger(app, router)
     const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
     const swaggerJSON = response.body
     const swaggerPath = swaggerJSON?.paths?.['/test/{name}']?.post
@@ -305,14 +304,14 @@ describe('functions', () => {
       description: undefined,
       operationId: undefined
     }
-    const handler = openApiGenerator.createHandler(params)
+    const handler = createHandler(params)
     testRouter.post('/:name', handler, (_req, res) => {
       res.status(200).send('OK')
     })
     router.use('/test', testRouter)
     app.use('', router)
     // Act
-    openApiGenerator.runSwagger(app, router)
+    runSwagger(app, router)
     const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
     const swaggerJSON = response.body
     const swaggerPath = swaggerJSON?.paths?.['/test/{name}']?.post
@@ -351,14 +350,14 @@ describe('functions', () => {
       description: undefined,
       operationId: undefined
     }
-    const handler = openApiGenerator.createHandler(params)
+    const handler = createHandler(params)
     testRouter.post('/:name', handler, (_req, res) => {
       res.status(200).send('OK')
     })
     router.use('/test', testRouter)
     app.use('', router)
     // Act
-    openApiGenerator.runSwagger(app, router)
+    runSwagger(app, router)
     const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
     const swaggerJSON = response.body
     const swaggerPath = swaggerJSON?.paths?.['/test/{name}']?.post
@@ -397,14 +396,14 @@ describe('functions', () => {
       description: 'Description',
       operationId: 'testingID'
     }
-    const handler = openApiGenerator.createHandler(params)
+    const handler = createHandler(params)
     testRouter.post('/:name', handler, (_req, res) => {
       res.status(200).send('OK')
     })
     router.use('/test', testRouter)
     app.use('', router)
     // Act
-    openApiGenerator.runSwagger(app, router)
+    runSwagger(app, router)
     const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
     const swaggerJSON = response.body
     const swaggerPath = swaggerJSON?.paths?.['/test/{name}']?.post
@@ -426,7 +425,7 @@ describe('functions', () => {
     app.use('', router)
     // Act
 
-    const run = openApiGenerator.runSwagger(app, router)
+    const run = runSwagger(app, router)
     // Assert
     expect(run.status).toEqual('ERROR')
   })
