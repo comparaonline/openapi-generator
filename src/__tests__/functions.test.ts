@@ -134,6 +134,31 @@ describe('functions', () => {
     expect(swaggerPath).not.toBeUndefined()
     expect(swaggerPath.parameters.find((param: { in: string, name: string }) => param.name === 'name')?.in).toEqual('path')
   })
+
+  it('runSwagger with test endpoint joi required query params', async () => {
+    // Arrange
+    const { router, app } = init()
+    const testRouter = Router()
+    const joiSchema = joi.object().required().keys({
+      query: {
+        name: joi.string().required()
+      }
+    })
+    const handler = createHandler(joiSchema)
+    testRouter.get('/:name', handler, (_req, res) => {
+      res.status(200).send('OK')
+    })
+    router.use('/test', testRouter)
+    app.use('', router)
+    // Act
+    runSwagger(app, router)
+    const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
+    const swaggerJSON = response.body
+    const swaggerPath = swaggerJSON?.paths?.['/test/{name}']?.get
+    // Assert
+    expect(swaggerPath).not.toBeUndefined()
+    expect(swaggerPath.parameters.find((param: { in: string, name: string }) => param.name === 'name')?.in).toEqual('query')
+  })
   it('runSwagger with test endpoint joi body and params', async () => {
     // Arrange
     const { router, app } = init()
@@ -159,6 +184,73 @@ describe('functions', () => {
     const swaggerPath = swaggerJSON?.paths?.['/test/{name}']?.post
     // Assert
     expect(swaggerPath).not.toBeUndefined()
+    expect(swaggerPath.requestBody?.content?.['application/json']?.schema?.properties?.name?.type).toEqual('string')
+  })
+
+  it('runSwagger with test endpoint joi body , params and query params', async () => {
+    // Arrange
+    const { router, app } = init()
+    const testRouter = Router()
+    const joiSchema = joi.object().required().keys({
+      params: {
+        name: joi.string()
+      },
+      body: {
+        name: joi.string()
+      },
+      query: {
+        search: joi.number()
+      }
+    })
+    const handler = createHandler(joiSchema)
+    testRouter.post('/:name', handler, (_req, res) => {
+      res.status(200).send('OK')
+    })
+    router.use('/test', testRouter)
+    app.use('', router)
+    // Act
+    runSwagger(app, router)
+    const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
+    const swaggerJSON = response.body
+    const swaggerPath = swaggerJSON?.paths?.['/test/{name}']?.post
+    console.log(swaggerPath)
+    // Assert
+    expect(swaggerPath).not.toBeUndefined()
+    expect(swaggerPath.parameters.find((param: { in: string, name: string }) => param.name === 'search' && param.in === 'query')).not.toBeUndefined()
+    expect(swaggerPath.parameters.find((param: { in: string, name: string }) => param.name === 'name' && param.in === 'path')).not.toBeUndefined()
+    expect(swaggerPath.requestBody?.content?.['application/json']?.schema?.properties?.name?.type).toEqual('string')
+  })
+
+  it('runSwagger with test endpoint joi body , params and query params required', async () => {
+    // Arrange
+    const { router, app } = init()
+    const testRouter = Router()
+    const joiSchema = joi.object().required().keys({
+      params: {
+        name: joi.string()
+      },
+      body: {
+        name: joi.string()
+      },
+      query: {
+        search: joi.number().required()
+      }
+    })
+    const handler = createHandler(joiSchema)
+    testRouter.post('/:name', handler, (_req, res) => {
+      res.status(200).send('OK')
+    })
+    router.use('/test', testRouter)
+    app.use('', router)
+    // Act
+    runSwagger(app, router)
+    const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
+    const swaggerJSON = response.body
+    const swaggerPath = swaggerJSON?.paths?.['/test/{name}']?.post
+    // Assert
+    expect(swaggerPath).not.toBeUndefined()
+    expect(swaggerPath.parameters.find((param: { in: string, name: string }) => param.name === 'search' && param.in === 'query')?.required).toBeTruthy()
+    expect(swaggerPath.parameters.find((param: { in: string, name: string }) => param.name === 'name' && param.in === 'path')?.required).toBeFalsy()
     expect(swaggerPath.requestBody?.content?.['application/json']?.schema?.properties?.name?.type).toEqual('string')
   })
 
