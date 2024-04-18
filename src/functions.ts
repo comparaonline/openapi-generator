@@ -188,7 +188,17 @@ function listEndpoints (app: Application, swaggerConfig: SwaggerConfig): Swagger
         }
       } else if (layer.name === 'router') {
         const subRouter: any = layer.handle
-        const subPath = `${basePath}${layer.regexp.toString().slice(1, -4) as string}`
+        const regexp = layer.keys?.length > 0
+          ? new RegExp(
+            layer.regexp.source.replace(/\(\?:\(([^)]+)\)\)/g, () => {
+              return layer.keys.length > 0
+                ? `{${layer.keys.shift().name as string}}`
+                : ''
+            }),
+            layer.regexp.flags
+          )
+          : layer.regexp
+        const subPath = `${basePath}${regexp.toString().slice(1, -4) as string}`
 
         exploreRoutes(
           subRouter,
