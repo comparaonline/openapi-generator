@@ -34,8 +34,14 @@ function removeNullProperties (properties: any): void {
   }
 }
 
-function listEndpoints (app: Application, swaggerConfig: SwaggerConfig): SwaggerDoc & { paths: any, components: { schemas: any } } {
-  const swaggerSchema: SwaggerDoc & { paths: any, components: { schemas: any } } = {
+function listEndpoints (
+  app: Application,
+  swaggerConfig: SwaggerConfig
+): SwaggerDoc & { paths: any, components: { schemas: any } } {
+  const swaggerSchema: SwaggerDoc & {
+    paths: any
+    components: { schemas: any }
+  } = {
     ...swaggerConfig.swaggerDoc,
     paths: {},
     components: {
@@ -79,9 +85,9 @@ function listEndpoints (app: Application, swaggerConfig: SwaggerConfig): Swagger
           const method = methods[j]
           let controller: RequestHandlerWithDocumentation | undefined
           if (route.stack != null) {
-            controller =
-            route.stack.find(
-              (stack: any) => stack.handle.joi != null || stack.handle.responseType != null
+            controller = route.stack.find(
+              (stack: any) =>
+                stack.handle.joi != null || stack.handle.responseType != null
             )?.handle
           }
 
@@ -96,20 +102,25 @@ function listEndpoints (app: Application, swaggerConfig: SwaggerConfig): Swagger
             controller?.responseType
 
           if (responseType != null) {
-            const response = responseType.array === true
-              ? {
-                  schema: {
-                    type: 'array',
-                    items: {
-                      $ref: `#/components/schemas/${responseType.type.name as string}`
+            const response =
+              responseType.array === true
+                ? {
+                    schema: {
+                      type: 'array',
+                      items: {
+                        $ref: `#/components/schemas/${
+                          responseType.type.name as string
+                        }`
+                      }
                     }
                   }
-                }
-              : {
-                  schema: {
-                    $ref: `#/components/schemas/${responseType.type.name as string}`
+                : {
+                    schema: {
+                      $ref: `#/components/schemas/${
+                        responseType.type.name as string
+                      }`
+                    }
                   }
-                }
 
             responseOptions = {
               [responseType.statusCode]: {
@@ -121,28 +132,43 @@ function listEndpoints (app: Application, swaggerConfig: SwaggerConfig): Swagger
             }
           }
 
-          const options: { tags: string[], parameters?: any[], requestBody?: any } = {
-            tags: [basePath.slice(((swaggerSchema.basePath)?.length ?? 0) + 1).slice(0, -1)]
+          const options: {
+            tags: string[]
+            parameters?: any[]
+            requestBody?: any
+          } = {
+            tags: [
+              basePath
+                .slice((swaggerSchema.basePath?.length ?? 0) + 1)
+                .slice(0, -1)
+            ]
           }
 
           if (joi != null) {
             const { swagger } = j2s(joi)
-
             if (swagger.properties != null && swagger.properties.body != null) {
               options.requestBody = {
                 content: {
-                  [(controller as RequestHandlerWithDocumentation).contentType as string]: {
+                  [(controller as RequestHandlerWithDocumentation)
+                    .contentType as string]: {
                     schema: swagger.properties.body
                   }
                 }
               }
               if (swagger.example != null) {
-                options.requestBody.content[(controller as RequestHandlerWithDocumentation).contentType as string].examples = { custom: { value: swagger.example.body } }
+                options.requestBody.content[
+                  (controller as RequestHandlerWithDocumentation)
+                    .contentType as string
+                ].examples = { custom: { value: swagger.example.body } }
               }
             }
 
             if (swagger.properties != null) {
-              const allowedParameters = [{ name: 'params', in: 'path' }, { name: 'query', in: 'query' }, { name: 'headers', in: 'header' }]
+              const allowedParameters = [
+                { name: 'params', in: 'path' },
+                { name: 'query', in: 'query' },
+                { name: 'headers', in: 'header' }
+              ]
               if (options.parameters == null) {
                 options.parameters = []
               }
@@ -152,14 +178,15 @@ function listEndpoints (app: Application, swaggerConfig: SwaggerConfig): Swagger
                     JSON.stringify(swagger.properties[allowedParam.name])
                   )
 
-                  options.parameters = Object.keys(properties.properties).map(
-                    (property) => ({
+                  options.parameters = Object.keys(properties.properties)
+                    .map((property) => ({
                       in: allowedParam.in,
                       name: property,
-                      required: properties.required?.includes(property) ?? false,
+                      required:
+                        properties.required?.includes(property) ?? false,
                       schema: properties.properties[property]
-                    })
-                  ).concat(options.parameters)
+                    }))
+                    .concat(options.parameters)
                 }
               }
             }
@@ -167,7 +194,10 @@ function listEndpoints (app: Application, swaggerConfig: SwaggerConfig): Swagger
 
           const path: string =
             route.path.toString().length > 1
-              ? route.path.toString().slice(1).replace(/:([^/]+)/g, '{$1}')
+              ? route.path
+                .toString()
+                .slice(1)
+                .replace(/:([^/]+)/g, '{$1}')
               : ''
           const swaggerPath = `${basePath}${path}`.slice(
             swaggerSchema.basePath?.length ?? 0
@@ -179,7 +209,8 @@ function listEndpoints (app: Application, swaggerConfig: SwaggerConfig): Swagger
 
           swaggerSchema.paths[swaggerPath][method] = JSON.parse(
             JSON.stringify({
-              operationId: controller?.operationId ?? `${swaggerPath}_${method}`,
+              operationId:
+                controller?.operationId ?? `${swaggerPath}_${method}`,
               description: controller?.description ?? '',
               responses: responseOptions,
               ...options
@@ -188,17 +219,29 @@ function listEndpoints (app: Application, swaggerConfig: SwaggerConfig): Swagger
         }
       } else if (layer.name === 'router') {
         const subRouter: any = layer.handle
-        const regexp = layer.keys?.length > 0
-          ? new RegExp(
-            layer.regexp.source.replace(/\(\?:\(([^)]+)\)\)/g, () => {
-              return layer.keys.length > 0
-                ? `{${layer.keys.shift().name as string}}`
-                : ''
-            }),
-            layer.regexp.flags
-          )
-          : layer.regexp
-        const subPath = `${basePath}${regexp.toString().slice(1, -4) as string}`
+        // Construimos el subPath usando los nombres de layer.keys
+        let replacedSource = layer.regexp.source
+
+        // Iteramos sobre los parámetros dinámicos (layer.keys)
+        if (layer.keys?.length > 0) {
+          layer.keys.forEach((key: { name: string }) => {
+            // Reemplazamos los grupos capturados en el source por los nombres
+            replacedSource = replacedSource.replace(
+              /\(\?:\\\/\(\[\^\/\]\+\?\)\)/,
+              `/{${key.name}}`
+            )
+          })
+        }
+
+        // Limpiamos caracteres residuales no deseados
+        const cleanedPath: string = replacedSource
+          .replace(/^\^/, '') // Quitamos el `^` inicial
+          .replace(/\\\//g, '/') // Convertimos `\/` a `/`
+          .replace(/\(\?\:.*?\)\$/g, '') // Eliminamos grupos opcionales al final
+          .replace(/\(\?.*?\)/g, '') // Eliminamos cualquier grupo opcional residual
+
+        // Concatenamos con basePath
+        const subPath = `${basePath}${cleanedPath}`
 
         exploreRoutes(
           subRouter,
