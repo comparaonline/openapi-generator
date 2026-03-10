@@ -267,7 +267,6 @@ describe.each(schemaVariants)('functions ($label)', ({ pathParams, queryParams, 
     const response = await request(app).get(`${swaggerConfig.endpoint}.json`)
     const swaggerJSON = response.body
     const swaggerPath = swaggerJSON?.paths?.['/test/{name}']?.post
-    console.log(swaggerPath)
     expect(swaggerPath).not.toBeUndefined()
     expect(swaggerPath.parameters.find((param: { in: string, name: string }) => param.name === 'search' && param.in === 'query')).not.toBeUndefined()
     expect(swaggerPath.parameters.find((param: { in: string, name: string }) => param.name === 'name' && param.in === 'path')).not.toBeUndefined()
