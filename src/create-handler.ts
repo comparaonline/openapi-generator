@@ -1,11 +1,12 @@
-import { NextFunction, Request, RequestHandler } from 'express'
+import { NextFunction, Request, Response, RequestHandler } from 'express'
 import { ObjectSchema, isSchema } from 'joi'
-import { type ZodTypeAny } from 'zod'
 import { ResponseType } from './interfaces'
 import { StatusCodes } from 'http-status-codes'
 import { OpenApiGenerator } from './OpenApiGenerator'
 
-type ValidationSchema = ObjectSchema | ZodTypeAny
+interface ZodIssue { path: Array<string | number>, message: string }
+interface ZodLike { safeParse: (data: unknown) => { success: true, data: any } | { success: false, error: { issues: ZodIssue[] } } }
+type ValidationSchema = ObjectSchema | ZodLike
 
 class ExceptionError extends Error {
   constructor (public statusCode: number, message: string, public code: string) {
@@ -41,7 +42,8 @@ function schemaMiddleware (schema: ValidationSchema | undefined): RequestHandler
       } else {
         const result = schema.safeParse(req)
         if (!result.success) {
-          throw new ExceptionError(StatusCodes.BAD_REQUEST, result.error.message, 'bad-request')
+          const message = result.error.issues.map((i: ZodIssue) => `${i.path.join('.')}: ${i.message}`).join('; ')
+          throw new ExceptionError(StatusCodes.BAD_REQUEST, message, 'bad-request')
         }
         if (result.data.body !== undefined) req.body = result.data.body
         if (result.data.params !== undefined) req.params = result.data.params
@@ -68,7 +70,7 @@ function createHandler (param1?: ValidationSchema | Params | undefined, paramRes
       ? param1
       : 'responseType' in (param1 as object)
         ? (param1 as Params).schema
-        : param1 as ZodTypeAny
+        : param1 as ZodLike
   const middleware = schemaMiddleware(s)
   if (OpenApiGenerator.swaggerConfig.active) {
     const defaultContentType = 'application/json'
@@ -77,7 +79,7 @@ function createHandler (param1?: ValidationSchema | Params | undefined, paramRes
     middleware.contentType = contentType
     middleware.responseType = responseType
     middleware.operationId = (param1 != null && 'operationId' in param1 && param1.operationId != null) ? param1.operationId : undefined
-    middleware.description = typeof param1?.description === 'string' ? param1.description : undefined
+    middleware.description = typeof (param1 as Params)?.description === 'string' ? (param1 as Params).description : undefined
   }
   return middleware
 }
