@@ -98,7 +98,7 @@ describe('functions (schema-agnostic)', () => {
   })
 
   afterEach(() => {
-    // Reset any mutations to shared config object before parameterized tests run
+    // Reset any mutations to shared config object after each test
     swaggerConfig.jsonPath = originalJsonPath
     swaggerConfig.swaggerDoc.basePath = originalBasePath
     try {
