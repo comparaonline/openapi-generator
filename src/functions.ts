@@ -15,15 +15,19 @@ import { RequestHandlerWithDocumentation, type ValidationSchema } from './create
 import { OpenApiGenerator } from './OpenApiGenerator'
 
 let zodExtended = false
+const zodSchemaCache = new WeakMap<object, any>()
 
 function zodToOpenApiSchema (zodType: any): any {
+  if (zodSchemaCache.has(zodType)) {
+    return zodSchemaCache.get(zodType)
+  }
   let zodToOpenApiMod: any
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     zodToOpenApiMod = require('@asteasolutions/zod-to-openapi')
   } catch {
     throw new Error(
-      'Zod schema support requires "@asteasolutions/zod-to-openapi". Install it with: npm install @asteasolutions/zod-to-openapi'
+      'Zod schema support requires "@asteasolutions/zod-to-openapi". Install it with: yarn add @asteasolutions/zod-to-openapi'
     )
   }
   const { extendZodWithOpenApi, OpenAPIRegistry, OpenApiGeneratorV3 } = zodToOpenApiMod
@@ -40,6 +44,7 @@ function zodToOpenApiSchema (zodType: any): any {
   if (schema == null) {
     throw new Error('Failed to generate OpenAPI schema from Zod type')
   }
+  zodSchemaCache.set(zodType, schema)
   return schema
 }
 
@@ -251,13 +256,13 @@ function listEndpoints (
         }
       } else if (layer.name === 'router') {
         const subRouter: any = layer.handle
-        // Construimos el subPath usando los nombres de layer.keys
+        // Build the subPath using layer.keys names
         let replacedSource = layer.regexp.source
 
-        // Iteramos sobre los parámetros dinámicos (layer.keys)
+        // Iterate over dynamic parameters (layer.keys)
         if (layer.keys?.length > 0) {
           layer.keys.forEach((key: { name: string }) => {
-            // Reemplazamos los grupos capturados en el source por los nombres
+            // Replace captured groups in source with the key names
             replacedSource = replacedSource.replace(
               /\(\?:\\\/\(\[\^\/\]\+\?\)\)/,
               `/{${key.name}}`
@@ -265,14 +270,14 @@ function listEndpoints (
           })
         }
 
-        // Limpiamos caracteres residuales no deseados
+        // Strip unwanted residual characters
         const cleanedPath: string = replacedSource
-          .replace(/^\^/, '') // Quitamos el `^` inicial
-          .replace(/\\\//g, '/') // Convertimos `\/` a `/`
-          .replace(/\(\?\:.*?\)\$/g, '') // Eliminamos grupos opcionales al final
-          .replace(/\(\?.*?\)/g, '') // Eliminamos cualquier grupo opcional residual
+          .replace(/^\^/, '') // Remove leading `^`
+          .replace(/\\\//g, '/') // Convert `\/` to `/`
+          .replace(/\(\?\:.*?\)\$/g, '') // Remove trailing optional groups
+          .replace(/\(\?.*?\)/g, '') // Remove any remaining optional groups
 
-        // Concatenamos con basePath
+        // Concatenate with basePath
         const subPath = `${basePath}${cleanedPath}`
 
         exploreRoutes(
