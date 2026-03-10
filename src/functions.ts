@@ -5,8 +5,6 @@
 
 import { Application, Router } from 'express'
 import j2s from 'joi-to-swagger'
-import { extendZodWithOpenApi, OpenAPIRegistry, OpenApiGeneratorV3 } from '@asteasolutions/zod-to-openapi'
-import { z, type ZodTypeAny } from 'zod'
 import { isSchema, type ObjectSchema } from 'joi'
 import { createGenerator } from 'ts-json-schema-generator'
 import { StatusCodes } from 'http-status-codes'
@@ -16,13 +14,20 @@ import { ResponseType, SwaggerConfig, SwaggerDoc } from './interfaces'
 import { RequestHandlerWithDocumentation, type ValidationSchema } from './create-handler'
 import { OpenApiGenerator } from './OpenApiGenerator'
 
-extendZodWithOpenApi(z)
-
-function zodToOpenApiSchema (zodType: ZodTypeAny): any {
+function zodToOpenApiSchema (zodType: any): any {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { extendZodWithOpenApi, OpenAPIRegistry, OpenApiGeneratorV3 } = require('@asteasolutions/zod-to-openapi')
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { z } = require('zod')
+  extendZodWithOpenApi(z)
   const registry = new OpenAPIRegistry()
   registry.register('RequestSchema', zodType)
   const doc = new OpenApiGeneratorV3(registry.definitions).generateDocument({ openapi: '3.0.0', info: { title: '', version: '' } })
-  return doc.components?.schemas?.RequestSchema
+  const schema = doc.components?.schemas?.RequestSchema
+  if (schema == null) {
+    throw new Error('Failed to generate OpenAPI schema from Zod type')
+  }
+  return schema
 }
 
 function removeNullProperties (properties: any): void {
