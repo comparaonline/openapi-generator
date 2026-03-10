@@ -66,7 +66,7 @@ function createHandler (param1?: ValidationSchema | Params | undefined, paramRes
     ? undefined
     : isSchema(param1)
       ? param1
-      : 'schema' in (param1 as object)
+      : 'responseType' in (param1 as object)
         ? (param1 as Params).schema
         : param1 as ZodTypeAny
   const middleware = schemaMiddleware(s)
