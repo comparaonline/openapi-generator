@@ -5,13 +5,25 @@
 
 import { Application, Router } from 'express'
 import j2s from 'joi-to-swagger'
+import { extendZodWithOpenApi, OpenAPIRegistry, OpenApiGeneratorV3 } from '@asteasolutions/zod-to-openapi'
+import { z, type ZodTypeAny } from 'zod'
+import { isSchema, type ObjectSchema } from 'joi'
 import { createGenerator } from 'ts-json-schema-generator'
 import { StatusCodes } from 'http-status-codes'
 import { existsSync, writeFileSync, readFileSync } from 'fs'
 import { serve, setup } from 'swagger-ui-express'
 import { ResponseType, SwaggerConfig, SwaggerDoc } from './interfaces'
-import { RequestHandlerWithDocumentation } from './create-handler'
+import { RequestHandlerWithDocumentation, type ValidationSchema } from './create-handler'
 import { OpenApiGenerator } from './OpenApiGenerator'
+
+extendZodWithOpenApi(z)
+
+function zodToOpenApiSchema (zodType: ZodTypeAny): any {
+  const registry = new OpenAPIRegistry()
+  registry.register('RequestSchema', zodType)
+  const doc = new OpenApiGeneratorV3(registry.definitions).generateDocument({ openapi: '3.0.0', info: { title: '', version: '' } })
+  return doc.components?.schemas?.RequestSchema
+}
 
 function removeNullProperties (properties: any): void {
   for (const key in properties) {
@@ -87,7 +99,7 @@ function listEndpoints (
           if (route.stack != null) {
             controller = route.stack.find(
               (stack: any) =>
-                stack.handle.joi != null || stack.handle.responseType != null
+                stack.handle.schema != null || stack.handle.responseType != null
             )?.handle
           }
 
@@ -97,7 +109,7 @@ function listEndpoints (
             }
           }
 
-          const joi = controller?.joi
+          const validationSchema: ValidationSchema | undefined = controller?.schema
           const responseType: ResponseType | undefined =
             controller?.responseType
 
@@ -144,26 +156,28 @@ function listEndpoints (
             ]
           }
 
-          if (joi != null) {
-            const { swagger } = j2s(joi)
-            if (swagger.properties != null && swagger.properties.body != null) {
+          if (validationSchema != null) {
+            const openApiSchema = isSchema(validationSchema)
+              ? j2s(validationSchema as ObjectSchema).swagger
+              : zodToOpenApiSchema(validationSchema)
+            if (openApiSchema.properties != null && openApiSchema.properties.body != null) {
               options.requestBody = {
                 content: {
                   [(controller as RequestHandlerWithDocumentation)
                     .contentType as string]: {
-                    schema: swagger.properties.body
+                    schema: openApiSchema.properties.body
                   }
                 }
               }
-              if (swagger.example != null) {
+              if (openApiSchema.example != null) {
                 options.requestBody.content[
                   (controller as RequestHandlerWithDocumentation)
                     .contentType as string
-                ].examples = { custom: { value: swagger.example.body } }
+                ].examples = { custom: { value: openApiSchema.example.body } }
               }
             }
 
-            if (swagger.properties != null) {
+            if (openApiSchema.properties != null) {
               const allowedParameters = [
                 { name: 'params', in: 'path' },
                 { name: 'query', in: 'query' },
@@ -173,9 +187,9 @@ function listEndpoints (
                 options.parameters = []
               }
               for (const allowedParam of allowedParameters) {
-                if (swagger.properties[allowedParam.name] != null) {
+                if (openApiSchema.properties[allowedParam.name] != null) {
                   const properties = JSON.parse(
-                    JSON.stringify(swagger.properties[allowedParam.name])
+                    JSON.stringify(openApiSchema.properties[allowedParam.name])
                   )
 
                   options.parameters = Object.keys(properties.properties)
