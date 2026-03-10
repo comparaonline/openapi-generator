@@ -14,12 +14,25 @@ import { ResponseType, SwaggerConfig, SwaggerDoc } from './interfaces'
 import { RequestHandlerWithDocumentation, type ValidationSchema } from './create-handler'
 import { OpenApiGenerator } from './OpenApiGenerator'
 
+let zodExtended = false
+
 function zodToOpenApiSchema (zodType: any): any {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { extendZodWithOpenApi, OpenAPIRegistry, OpenApiGeneratorV3 } = require('@asteasolutions/zod-to-openapi')
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { z } = require('zod')
-  extendZodWithOpenApi(z)
+  let zodToOpenApiMod: any
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    zodToOpenApiMod = require('@asteasolutions/zod-to-openapi')
+  } catch {
+    throw new Error(
+      'Zod schema support requires "@asteasolutions/zod-to-openapi". Install it with: npm install @asteasolutions/zod-to-openapi'
+    )
+  }
+  const { extendZodWithOpenApi, OpenAPIRegistry, OpenApiGeneratorV3 } = zodToOpenApiMod
+  if (!zodExtended) {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { z } = require('zod')
+    extendZodWithOpenApi(z)
+    zodExtended = true
+  }
   const registry = new OpenAPIRegistry()
   registry.register('RequestSchema', zodType)
   const doc = new OpenApiGeneratorV3(registry.definitions).generateDocument({ openapi: '3.0.0', info: { title: '', version: '' } })
