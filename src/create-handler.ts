@@ -42,13 +42,13 @@ function schemaMiddleware (schema: ValidationSchema | undefined): RequestHandler
       } else {
         const result = schema.safeParse(req)
         if (!result.success) {
-          const message = result.error.issues.map((i: ZodIssue) => `${i.path.join('.')}: ${i.message}`).join('; ')
+          const message = result.error.issues.map((i: ZodIssue) => `${i.path.map(String).join('.')}: ${i.message}`).join('; ')
           throw new ExceptionError(StatusCodes.BAD_REQUEST, message, 'bad-request')
         }
-        if (result.data.body !== undefined) req.body = result.data.body
-        if (result.data.params !== undefined) req.params = result.data.params
-        if (result.data.query !== undefined) req.query = result.data.query
-        if (result.data.headers !== undefined) req.headers = result.data.headers
+        req.body = result.data.body
+        req.params = result.data.params
+        req.query = result.data.query
+        req.headers = result.data.headers
       }
       return next()
     } catch (e) {
