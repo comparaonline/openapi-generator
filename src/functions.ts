@@ -32,9 +32,16 @@ function zodToOpenApiSchema (zodType: any): any {
   }
   const { extendZodWithOpenApi, OpenAPIRegistry, OpenApiGeneratorV3 } = zodToOpenApiMod
   if (!zodExtended) {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { z } = require('zod')
-    extendZodWithOpenApi(z)
+    let zodMod: any
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      zodMod = require('zod')
+    } catch {
+      throw new Error(
+        'Zod schema support requires "zod". Install it with: yarn add zod'
+      )
+    }
+    extendZodWithOpenApi(zodMod.z)
     zodExtended = true
   }
   const registry = new OpenAPIRegistry()

@@ -68,9 +68,9 @@ function createHandler (param1?: ValidationSchema | Params | undefined, paramRes
     ? undefined
     : isSchema(param1)
       ? param1
-      : 'responseType' in (param1 as object)
-        ? (param1 as Params).schema
-        : param1 as ZodLike
+      : 'safeParse' in (param1 as object)
+        ? param1 as ZodLike
+        : (param1 as Params).schema
   const middleware = schemaMiddleware(s)
   if (OpenApiGenerator.swaggerConfig.active) {
     const defaultContentType = 'application/json'
