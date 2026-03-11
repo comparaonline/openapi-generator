@@ -85,6 +85,38 @@ describe.each(schemaVariants)('create-handler ($name)', ({ schema }) => {
   })
 })
 
+describe('create-handler (Zod params/query/headers passthrough)', () => {
+  it('should assign req.params from validated Zod data', () => {
+    const schema = z.object({ params: z.object({ id: z.string() }) })
+    const next = jest.fn()
+    const req: any = { params: { id: '42' } }
+    const handler = createHandler(schema)
+    handler(req, {} as any, next)
+    expect(req.params).toEqual({ id: '42' })
+    expect(next).not.toHaveBeenCalledWith(expect.any(Error))
+  })
+
+  it('should assign req.query from validated Zod data', () => {
+    const schema = z.object({ query: z.object({ search: z.string() }) })
+    const next = jest.fn()
+    const req: any = { query: { search: 'foo' } }
+    const handler = createHandler(schema)
+    handler(req, {} as any, next)
+    expect(req.query).toEqual({ search: 'foo' })
+    expect(next).not.toHaveBeenCalledWith(expect.any(Error))
+  })
+
+  it('should assign req.headers from validated Zod data', () => {
+    const schema = z.object({ headers: z.object({ 'x-token': z.string() }) })
+    const next = jest.fn()
+    const req: any = { headers: { 'x-token': 'abc' } }
+    const handler = createHandler(schema)
+    handler(req, {} as any, next)
+    expect(req.headers).toEqual({ 'x-token': 'abc' })
+    expect(next).not.toHaveBeenCalledWith(expect.any(Error))
+  })
+})
+
 describe('create-handler (schema-agnostic)', () => {
   it('create handler function with undefined schema', () => {
     const handler = createHandler(undefined)
