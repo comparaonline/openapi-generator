@@ -4,7 +4,7 @@ import { ResponseType } from './interfaces'
 import { StatusCodes } from 'http-status-codes'
 import { OpenApiGenerator } from './OpenApiGenerator'
 
-interface ZodIssue { path: Array<string | number>, message: string }
+interface ZodIssue { path: PropertyKey[], message: string }
 interface ZodLike { safeParse: (data: unknown) => { success: true, data: any } | { success: false, error: { issues: ZodIssue[] } } }
 type ValidationSchema = ObjectSchema | ZodLike
 
