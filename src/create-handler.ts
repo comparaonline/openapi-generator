@@ -22,7 +22,7 @@ interface Params {
   operationId?: string
 }
 
-type RequestHandlerWithDocumentation = RequestHandler & { schema?: ValidationSchema, contentType?: string, responseType?: ResponseType, description?: string, operationId?: string }
+type RequestHandlerWithDocumentation = RequestHandler & { joi?: ObjectSchema, schema?: ValidationSchema, contentType?: string, responseType?: ResponseType, description?: string, operationId?: string }
 
 function schemaMiddleware (schema: ValidationSchema | undefined): RequestHandlerWithDocumentation {
   const middleware: RequestHandlerWithDocumentation = (async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
@@ -57,6 +57,9 @@ function schemaMiddleware (schema: ValidationSchema | undefined): RequestHandler
   }) as unknown as RequestHandlerWithDocumentation
   if (OpenApiGenerator.swaggerConfig.active) {
     middleware.schema = schema
+    if (isSchema(schema)) {
+      middleware.joi = schema as ObjectSchema
+    }
   }
   return middleware
 }
