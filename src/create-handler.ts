@@ -4,7 +4,7 @@ import { ResponseType } from './interfaces'
 import { StatusCodes } from 'http-status-codes'
 import { OpenApiGenerator } from './OpenApiGenerator'
 
-interface ZodIssue { path: Array<string | number>, message: string }
+interface ZodIssue { path: PropertyKey[], message: string }
 interface ZodLike { safeParse: (data: unknown) => { success: true, data: any } | { success: false, error: { issues: ZodIssue[] } } }
 type ValidationSchema = ObjectSchema | ZodLike
 
@@ -22,7 +22,7 @@ interface Params {
   operationId?: string
 }
 
-type RequestHandlerWithDocumentation = RequestHandler & { schema?: ValidationSchema, contentType?: string, responseType?: ResponseType, description?: string, operationId?: string }
+type RequestHandlerWithDocumentation = RequestHandler & { joi?: ObjectSchema, schema?: ValidationSchema, contentType?: string, responseType?: ResponseType, description?: string, operationId?: string }
 
 function schemaMiddleware (schema: ValidationSchema | undefined): RequestHandlerWithDocumentation {
   const middleware: RequestHandlerWithDocumentation = (async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
@@ -57,6 +57,9 @@ function schemaMiddleware (schema: ValidationSchema | undefined): RequestHandler
   }) as unknown as RequestHandlerWithDocumentation
   if (OpenApiGenerator.swaggerConfig.active) {
     middleware.schema = schema
+    if (isSchema(schema)) {
+      middleware.joi = schema as ObjectSchema
+    }
   }
   return middleware
 }

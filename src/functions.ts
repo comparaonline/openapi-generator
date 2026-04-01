@@ -6,6 +6,7 @@
 import { Application, Router } from 'express'
 import j2s from 'joi-to-swagger'
 import { isSchema, type ObjectSchema } from 'joi'
+import { z } from 'zod'
 import { createGenerator } from 'ts-json-schema-generator'
 import { StatusCodes } from 'http-status-codes'
 import { existsSync, writeFileSync, readFileSync } from 'fs'
@@ -14,43 +15,13 @@ import { ResponseType, SwaggerConfig, SwaggerDoc } from './interfaces'
 import { RequestHandlerWithDocumentation, type ValidationSchema } from './create-handler'
 import { OpenApiGenerator } from './OpenApiGenerator'
 
-let zodExtended = false
 const zodSchemaCache = new WeakMap<object, any>()
 
 function zodToOpenApiSchema (zodType: any): any {
   if (zodSchemaCache.has(zodType)) {
     return zodSchemaCache.get(zodType)
   }
-  let zodToOpenApiMod: any
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    zodToOpenApiMod = require('@asteasolutions/zod-to-openapi')
-  } catch {
-    throw new Error(
-      'Zod schema support requires "@asteasolutions/zod-to-openapi". Install it with: yarn add @asteasolutions/zod-to-openapi'
-    )
-  }
-  const { extendZodWithOpenApi, OpenAPIRegistry, OpenApiGeneratorV3 } = zodToOpenApiMod
-  if (!zodExtended) {
-    let zodMod: any
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      zodMod = require('zod')
-    } catch {
-      throw new Error(
-        'Zod schema support requires "zod". Install it with: yarn add zod'
-      )
-    }
-    extendZodWithOpenApi(zodMod.z)
-    zodExtended = true
-  }
-  const registry = new OpenAPIRegistry()
-  registry.register('RequestSchema', zodType)
-  const doc = new OpenApiGeneratorV3(registry.definitions).generateDocument({ openapi: '3.0.0', info: { title: '', version: '' } })
-  const schema = doc.components?.schemas?.RequestSchema
-  if (schema == null) {
-    throw new Error('Failed to generate OpenAPI schema from Zod type')
-  }
+  const schema = z.toJSONSchema(zodType, { target: 'draft-07' })
   zodSchemaCache.set(zodType, schema)
   return schema
 }
@@ -129,7 +100,7 @@ function listEndpoints (
           if (route.stack != null) {
             controller = route.stack.find(
               (stack: any) =>
-                stack.handle.schema != null || stack.handle.responseType != null
+                stack.handle.schema != null || stack.handle.joi != null || stack.handle.responseType != null
             )?.handle
           }
 
@@ -139,7 +110,7 @@ function listEndpoints (
             }
           }
 
-          const validationSchema: ValidationSchema | undefined = controller?.schema
+          const validationSchema: ValidationSchema | undefined = controller?.schema ?? controller?.joi
           const responseType: ResponseType | undefined =
             controller?.responseType
 
