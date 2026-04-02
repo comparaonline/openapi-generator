@@ -1,0 +1,41 @@
+{
+  "skill_name": "conventional-commit",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "commit",
+      "expected_output": "The skill detects all changed files, groups them by type+scope (separating test files from implementation), proposes well-formed conventional commit messages with bodies where the diff reveals non-trivial changes, validates against commitlint or commitizen if configured, presents the full plan, and waits for approval before executing.",
+      "files": [],
+      "expectations": [
+        "The skill runs git status or git diff to detect changed files before proposing anything",
+        "Test files are separated into their own commit(s) from implementation files",
+        "Each proposed commit message follows the type(scope): subject format",
+        "The skill presents the plan and waits for user approval before executing any git commit"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "commit, I replaced the setTimeout retry with async/await to fix the race condition in the login flow",
+      "expected_output": "The skill uses the user's stated rationale as the primary source for the commit body. The body explicitly captures the decision: replacing setTimeout with async/await to fix a race condition. The subject line reflects the change type (fix or refactor) and scope derived from the modified files.",
+      "files": [],
+      "expectations": [
+        "The commit body references the user's rationale: async/await replacing setTimeout to fix a race condition",
+        "The commit type is fix or refactor (not feat), matching the nature of the change",
+        "The scope is derived from the modified files (e.g. auth, login)",
+        "The skill does not invent rationale — it uses what the user provided"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "commit src/auth/login.ts and src/auth/__tests__/login.test.ts",
+      "expected_output": "The skill proposes exactly 2 commits: one for login.ts (implementation, typed as feat/fix/refactor based on the diff) and one for the test file (typed as test), keeping them separate per the test/implementation separation rule.",
+      "files": [],
+      "expectations": [
+        "Exactly 2 commits are proposed",
+        "login.ts is in a commit with type feat, fix, or refactor — not test",
+        "login.test.ts is in a separate commit with type test",
+        "Both commits use the same scope derived from the file paths (e.g. auth)"
+      ]
+    }
+  ]
+}
