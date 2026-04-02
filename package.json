@@ -11,6 +11,7 @@
   "scripts": {
     "build": "tsc",
     "lint": "ts-standard src --fix",
+    "lint:types": "tsc --noEmit",
     "test": "jest",
     "pretest": "yarn lint",
     "tester": "ts-node src/tester.ts",
