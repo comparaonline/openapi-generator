@@ -107,7 +107,7 @@ function listEndpoints (
           if (route.stack != null) {
             controller = route.stack.find(
               (stack: any) =>
-                stack.handle.schema != null || stack.handle.joi != null || stack.handle.responseType != null
+                stack.handle.schema != null || stack.handle.responseType != null
             )?.handle
           }
 
@@ -117,7 +117,7 @@ function listEndpoints (
             }
           }
 
-          const validationSchema: ValidationSchema | undefined = controller?.schema ?? controller?.joi
+          const validationSchema: ValidationSchema | undefined = controller?.schema
           const responseType: ResponseType | undefined =
             controller?.responseType
 

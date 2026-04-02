@@ -58,7 +58,7 @@ function schemaMiddleware (schema: ValidationSchema | undefined): RequestHandler
   if (OpenApiGenerator.swaggerConfig.active) {
     middleware.schema = schema
     if (isSchema(schema)) {
-      middleware.joi = schema as ObjectSchema
+      middleware.joi = schema
     }
   }
   return middleware
