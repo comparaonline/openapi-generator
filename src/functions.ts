@@ -20,8 +20,14 @@ function zodToOpenApiSchema (zodType: any): any {
   if (zodSchemaCache.has(zodType)) {
     return zodSchemaCache.get(zodType)
   }
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { z } = require('zod') as typeof import('zod')
+  let zMod: typeof import('zod')
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    zMod = require('zod')
+  } catch {
+    throw new Error('Zod schema support requires "zod". Install it with: yarn add zod')
+  }
+  const { z } = zMod
   const schema = z.toJSONSchema(zodType, { target: 'draft-07' })
   zodSchemaCache.set(zodType, schema)
   return schema
