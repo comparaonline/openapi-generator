@@ -1,0 +1,26 @@
+# openapi-generator
+
+> Auto-generates OpenAPI 3.0 documentation and request validation middleware for Express routes using Joi or Zod schemas.
+
+## Metadata
+- type: lib
+- domain: domain-devops
+- status: active
+
+## Dependencies
+- express
+
+## Responsibilities
+- Generate OpenAPI 3.0 spec from Express route handlers
+- Provide request validation middleware for path params, query params, and headers
+- Serve Swagger UI at a configurable endpoint
+- Support Joi and Zod v4 schema definitions
+
+## Out of scope
+- Authentication or authorization
+- Database access
+- Business logic
+
+## Usage
+- Install: `yarn add @comparaonline/openapi-generator`
+- Exports: createHandler, runSwagger, setupOpenApi, RequestHandlerWithDocumentation, ValidationSchema, SwaggerDoc, SwaggerConfig, ResponseType
