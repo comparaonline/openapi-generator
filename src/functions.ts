@@ -6,7 +6,6 @@
 import { Application, Router } from 'express'
 import j2s from 'joi-to-swagger'
 import { isSchema, type ObjectSchema } from 'joi'
-import { z } from 'zod'
 import { createGenerator } from 'ts-json-schema-generator'
 import { StatusCodes } from 'http-status-codes'
 import { existsSync, writeFileSync, readFileSync } from 'fs'
@@ -21,6 +20,8 @@ function zodToOpenApiSchema (zodType: any): any {
   if (zodSchemaCache.has(zodType)) {
     return zodSchemaCache.get(zodType)
   }
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { z } = require('zod') as typeof import('zod')
   const schema = z.toJSONSchema(zodType, { target: 'draft-07' })
   zodSchemaCache.set(zodType, schema)
   return schema
