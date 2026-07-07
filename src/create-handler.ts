@@ -8,12 +8,6 @@ interface ZodIssue { path: Array<string | number>, message: string }
 interface ZodLike { safeParse: (data: unknown) => { success: true, data: any } | { success: false, error: { issues: ZodIssue[] } } }
 type ValidationSchema = ObjectSchema | ZodLike
 
-class ExceptionError extends Error {
-  constructor (public statusCode: number, message: string, public code: string) {
-    super(message)
-  }
-}
-
 interface Params {
   schema: ValidationSchema | undefined
   contentType?: string
@@ -24,8 +18,12 @@ interface Params {
 
 type RequestHandlerWithDocumentation = RequestHandler & { schema?: ValidationSchema, contentType?: string, responseType?: ResponseType, description?: string, operationId?: string }
 
+function respondBadRequest (res: Response, message: string): void {
+  res.status(StatusCodes.BAD_REQUEST).json({ message, code: 'bad-request' })
+}
+
 function schemaMiddleware (schema: ValidationSchema | undefined): RequestHandlerWithDocumentation {
-  const middleware: RequestHandlerWithDocumentation = (async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
+  const middleware: RequestHandlerWithDocumentation = (async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       if (schema == null) {
         return next()
@@ -33,7 +31,8 @@ function schemaMiddleware (schema: ValidationSchema | undefined): RequestHandler
       if (isSchema(schema)) {
         const { error, value } = schema.validate(req)
         if (error != null) {
-          throw new ExceptionError(StatusCodes.BAD_REQUEST, error.message, 'bad-request')
+          respondBadRequest(res, error.message)
+          return
         }
         req.body = value.body
         req.params = value.params
@@ -43,7 +42,8 @@ function schemaMiddleware (schema: ValidationSchema | undefined): RequestHandler
         const result = schema.safeParse(req)
         if (!result.success) {
           const message = result.error.issues.map((i: ZodIssue) => `${i.path.map(String).join('.')}: ${i.message}`).join('; ')
-          throw new ExceptionError(StatusCodes.BAD_REQUEST, message, 'bad-request')
+          respondBadRequest(res, message)
+          return
         }
         req.body = result.data.body
         req.params = result.data.params

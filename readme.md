@@ -131,6 +131,25 @@ export {productsRouter}
 
 The joi will not only validate that your parameters are correct but will also generate the documentation
 
+### Validation errors
+
+> **Breaking change in v2.0.0.** Until v1.x the validation middleware threw an
+> `ExceptionError` and delegated it with `next(err)`, so a failed validation
+> reached your Express error handler. This caused APM tools (e.g. dd-trace) to
+> mark the middleware span as an error on every client-side 4xx.
+
+Since v2.0.0 the middleware **responds `400` directly** when validation fails,
+without calling `next(err)`. A validation failure is a client error, not a
+service error, so it no longer propagates as an exception nor pollutes APM
+error tracking. The response body keeps the same shape as before:
+
+```json
+{ "message": "\"body.email\" must be a valid email", "code": "bad-request" }
+```
+
+Unexpected errors (anything other than a validation failure) are still
+delegated with `next(err)` and reach your error handler as usual.
+
 ### Query Params
 
 To add query params you must follow the same logic as for path params in this way, the following example contains path and query params

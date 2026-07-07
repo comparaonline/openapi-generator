@@ -13,6 +13,7 @@
 ## Responsibilities
 - Generate OpenAPI 3.0 spec from Express route handlers
 - Provide request validation middleware for path params, query params, and headers
+- Respond 400 directly on validation failure (since v2.0.0; does not call next(err), keeps 4xx out of APM error tracking)
 - Serve Swagger UI at a configurable endpoint
 - Support Joi and Zod v4 schema definitions
 

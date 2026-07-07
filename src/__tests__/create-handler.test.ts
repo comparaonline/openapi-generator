@@ -66,13 +66,19 @@ describe.each(schemaVariants)('create-handler ($name)', ({ schema }) => {
     expect(handler.schema).toEqual(schema)
   })
 
-  it('should throw an ExceptionError if validation fails', () => {
+  it('should respond 400 directly when validation fails, without calling next(e)', async () => {
     const next = jest.fn()
+    const json = jest.fn()
+    const status = jest.fn().mockReturnValue({ json })
+    const res = { status } as any
     const req = { body: { name: 1 } }
     const handler = createHandler(schema)
-    handler(req as any, {} as any, next)
-    expect(handler).toBeInstanceOf(Function)
-    expect(next).toHaveBeenCalledWith(expect.any(Error))
+    await handler(req as any, res, next)
+    expect(status).toHaveBeenCalledWith(400)
+    expect(json).toHaveBeenCalledWith(
+      expect.objectContaining({ code: 'bad-request', message: expect.any(String) })
+    )
+    expect(next).not.toHaveBeenCalled()
   })
 
   it('should ok - validation ok', () => {
