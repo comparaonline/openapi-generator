@@ -145,4 +145,16 @@ describe('create-handler (schema-agnostic)', () => {
     expect(handler).toBeInstanceOf(Function)
     expect(next).not.toHaveBeenCalledWith(expect.any(Error))
   })
+
+  it('should delegate unexpected (non-validation) errors to next(err) without responding', async () => {
+    const boom = new Error('unexpected failure during parsing')
+    const throwingSchema = { safeParse: () => { throw boom } } as any
+    const next = jest.fn()
+    const status = jest.fn()
+    const res = { status } as any
+    const handler = createHandler(throwingSchema)
+    await handler({} as any, res, next)
+    expect(next).toHaveBeenCalledWith(boom)
+    expect(status).not.toHaveBeenCalled()
+  })
 })

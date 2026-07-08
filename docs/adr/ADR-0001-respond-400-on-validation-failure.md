@@ -96,9 +96,6 @@ keep propagating to the consumer's error handler and keep appearing in APM.
 - Four consumer PRs are needed to bump `^1.0.x` → `^2.0.0` (`users`,
   `login-service`, `offer-builder`, `order-orchestrator`).
 - `ExceptionError` became dead code and was removed from `create-handler.ts`.
-- Notion RFC cross-check for existing observability/validation conventions was
-  pending at authoring time (Notion API rate-limited); revisit if a related RFC
-  exists.
 
 ---
 
