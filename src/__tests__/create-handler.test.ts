@@ -121,6 +121,24 @@ describe('create-handler (Zod params/query/headers passthrough)', () => {
     expect(req.headers).toEqual({ 'x-token': 'abc' })
     expect(next).not.toHaveBeenCalledWith(expect.any(Error))
   })
+
+  it('should preserve unvalidated req.headers, req.params, and req.query when Zod schema only validates body', async () => {
+    const bodyOnlySchema = z.object({ body: z.object({ name: z.string() }) })
+    const next = jest.fn()
+    const req: any = {
+      body: { name: 'Alice' },
+      params: { orgId: '99' },
+      query: { page: '1' },
+      headers: { authorization: 'Bearer token-123' }
+    }
+    const handler = createHandler(bodyOnlySchema)
+    await handler(req, {} as any, next)
+    expect(req.body).toEqual({ name: 'Alice' })
+    expect(req.params).toEqual({ orgId: '99' })
+    expect(req.query).toEqual({ page: '1' })
+    expect(req.headers).toEqual({ authorization: 'Bearer token-123' })
+    expect(next).toHaveBeenCalledWith()
+  })
 })
 
 describe('create-handler (schema-agnostic)', () => {
